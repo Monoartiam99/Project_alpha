@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolarVision | Professional Solar Analysis Platform</title>
+    <meta name="description" content="Professional rooftop solar analysis with satellite mapping, NASA weather data, AI-powered insights, financial projections, and environmental impact metrics.">
+    <meta name="theme-color" content="#060913">
+    <meta property="og:title" content="SolarVision — Professional Solar Calculator">
+    <meta property="og:description" content="Analyze your rooftop solar potential with satellite imagery, NASA data & AI. Get energy estimates, savings projections, and environmental impact.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://solarvision.vercel.app/solar_advanced.html">
+    <link rel="canonical" href="https://solarvision.vercel.app/solar_advanced.html">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="SolarVision">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☀️</text></svg>">
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SolarVision Solar Calculator",
+        "url": "https://solarvision.vercel.app/solar_advanced.html",
+        "description": "Professional rooftop solar analysis with satellite mapping, NASA weather data, AI-powered insights, and financial projections.",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "AED" },
+        "creator": { "@type": "Organization", "name": "SolarVision" }
+    }
+    </script>
+
+    <!-- Leaflet & Icon Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Redesigned Minimalist Stylesheet -->
+    <link rel="stylesheet" href="solar_advance_1.css">
+</head>
+
+<body>
+    
+    <!-- Page Transition Overlay -->
+    <div class="page-transition" id="pageTransition" aria-hidden="true"></div>
+
+    <!-- Premium Custom Loading Screen -->
+    <div class="premium-loader" id="premiumLoader" role="status" aria-label="Loading SolarVision Calculator">
+        <div class="loader-container">
+            <div class="loader-logo">
+                <img src="assets/images/logo.png" alt="SolarVision" onerror="this.src='data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>☀️</text></svg>'">
+            </div>
+            <div class="loader-progress">
+                <div class="loader-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Decoration -->
+    <div class="noise-overlay" aria-hidden="true"></div>
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+    <div class="cursor-glow" aria-hidden="true"></div>
+    
+    <div class="bg-blob bg-blob-1" aria-hidden="true"></div>
+    <div class="bg-blob bg-blob-2" aria-hidden="true"></div>
+    <div class="bg-blob bg-blob-3" aria-hidden="true"></div>
+
+    <div id="loadingOverlay" style="display: none;" role="status" aria-label="Processing">
+        <div class="loader"></div>
+        <div id="loadingText">Loading...</div>
+    </div>
+
+    <div id="statusMessage" class="status-message" role="alert" aria-live="polite"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <nav class="sidebar" role="navigation" aria-label="Solar analysis controls">
+            <div class="header">
+                <div class="header-top">
+                    <a href="index.html" class="back-btn" aria-label="Go back to homepage">
+                        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                        Back to Home
+                    </a>
+                </div>
+                <div class="header-brand">
+                    <div class="logo">
+                        <img src="assets/images/logo.png" alt="SolarVision" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                            <path d="M12 3V1M12 23V21M21 12H23M1 12H3M18.364 5.636L19.778 4.222M4.222 19.778L5.636 18.364M18.364 18.364L19.778 19.778M4.222 4.222L5.636 5.636" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <circle cx="12" cy="12" r="5" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Solar<span>Vision</span></h1>
+                        <p>AI-Powered Solar Analysis • <span>NASA POWER</span> Data</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="nav-tabs" role="tablist" aria-label="Analysis sections">
+                    <button class="nav-tab active" onclick="switchMainTab('setup')" role="tab" aria-selected="true" aria-controls="main-tab-setup">
+                        <i class="fas fa-cog" aria-hidden="true"></i>
+                        Setup
+                    </button>
+                    <button class="nav-tab data-tab disabled" onclick="switchMainTab('production')" role="tab" aria-selected="false" aria-controls="main-tab-production" title="Unlock with Premium or Calculate">
+                        <i class="fas fa-bolt" aria-hidden="true"></i>
+                        Energy
+                    </button>
+                    <button class="nav-tab data-tab disabled" onclick="switchMainTab('financial')" role="tab" aria-selected="false" aria-controls="main-tab-financial" title="Unlock with Premium or Calculate">
+                        <i class="fas fa-coins" aria-hidden="true"></i>
+                        Finance
+                    </button>
+                    <button class="nav-tab data-tab disabled" onclick="switchMainTab('chatbot')" role="tab" aria-selected="false" aria-controls="main-tab-chatbot" title="Unlock with Premium or Calculate">
+                        <i class="fas fa-robot" aria-hidden="true"></i>
+                        AI Chat
+                    </button>
+                </div>
+                
+                <!-- Premium Upgrade Section -->
+                <div id="premiumUpgradeCard" class="premium-upgrade-card" style="margin: 14px 12px 0; padding: 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(250, 204, 21, 0.15) 0%, rgba(234, 179, 8, 0.05) 100%); border: 1px solid rgba(250, 204, 21, 0.35); text-align: center; display: block;">
+                    <div style="font-size: 13px; font-weight: 700; color: #FACC15; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fas fa-crown"></i> SolarVision Premium
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Unlock Energy Forecast, Financial ROI, and AI Chatbot Assistance.</p>
+                    <button class="btn btn-primary" onclick="unlockPremium()" style="padding: 6px 16px; font-size: 11px; border-radius: 8px; width: 100%; height: auto; font-family: inherit;">
+                        <i class="fas fa-unlock"></i> Unlock All Premium Sections
+                    </button>
+                </div>
+                <div id="premiumActiveBadge" class="premium-upgrade-card" style="margin: 14px 12px 0; padding: 10px; border-radius: 12px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.05) 100%); border: 1px solid rgba(16, 185, 129, 0.35); text-align: center; display: none;">
+                    <div style="font-size: 12px; font-weight: 700; color: #10B981; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fas fa-circle-check"></i> Premium Activated
+                    </div>
+                </div>
+            </div>
+
+            <!-- Setup Tab -->
+            <div id="main-tab-setup" class="main-tab-content active" role="tabpanel">
+                <div class="content-section">
+                    <!-- Location Input -->
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div>
+                            <div class="section-title">Location</div>
+                            <div class="section-subtitle">Enter your address or use GPS</div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <i class="fas fa-search input-icon"></i>
+                            <input type="text" id="addressInput" placeholder="Search address..." oninput="handleLocationInput()" onkeypress="if(event.key==='Enter') searchLocation()">
+                            <div id="suggestions"></div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="searchLocation()">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
+                        <button class="btn btn-secondary" onclick="locateMe()">
+                            <i class="fas fa-location-crosshairs"></i>
+                            Use My Location
+                        </button>
+                    </div>
+
+                    <div id="locationCard">
+                        <div class="card-title">
+                            <i class="fas fa-check-circle"></i>
+                            Location Selected
+                        </div>
+                        <div id="locationDetails"></div>
+                    </div>
+
+                    <!-- Roof Area -->
+                    <div class="section-header" style="margin-top: 24px;">
+                        <div class="section-icon">
+                            <i class="fas fa-vector-square"></i>
+                        </div>
+                        <div>
+                            <div class="section-title">Roof Area</div>
+                            <div class="section-subtitle">Draw on map or auto-detect building</div>
+                        </div>
+                    </div>
+
+                    <div class="area-display" id="areaDisplayContainer">
+                        <div class="area-value" id="areaDisplay">0 m²</div>
+                        <div class="area-unit" id="areaDisplayFt">0 ft²</div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="smartBuildingDetect()">
+                            <i class="fas fa-brain"></i>
+                            Smart Building Detect
+                        </button>
+                        <button id="multiSelectBtn" class="btn btn-secondary" onclick="toggleMultiSelect()" style="display: none;">
+                            <i class="fas fa-layer-group"></i>
+                            Multi-Select: OFF
+                        </button>
+                        <button class="btn btn-ghost" onclick="clearRoof()">
+                            <i class="fas fa-trash"></i>
+                            Clear
+                        </button>
+                    </div>
+
+                    <!-- Panel Controls -->
+                    <div id="panelControlSection" style="margin-top: 24px;">
+                        <div class="section-header">
+                            <div class="section-icon">
+                                <i class="fas fa-solar-panel"></i>
+                            </div>
+                            <div>
+                                <div class="section-title">Panel Configuration</div>
+                                <div class="section-subtitle">Adjust number of solar panels</div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <span class="slider-label">Number of Panels</span>
+                                <span class="slider-value" id="panelSliderValue">35</span>
+                            </div>
+                            <input type="range" id="panelSlider" min="1" max="100" value="35" oninput="updatePanelCount(this.value)">
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                                <span>1</span>
+                                <span id="maxPanelText">Max: 100</span>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value" id="sliderSystemSize">0 kW</div>
+                                <div class="stat-label">System Size</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="sliderCoverage">0%</div>
+                                <div class="stat-label">Coverage</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value highlight" id="estCost">0 AED</div>
+                                <div class="stat-label">Est. Cost</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value success" id="panelsFit">0 / 0</div>
+                                <div class="stat-label">Panels Fit</div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Features Toolbar -->
+                        <div class="feature-toolbar">
+                            <button class="feature-btn" id="obstacleBtn" onclick="toggleObstacleMode()" title="Mark obstacles like AC units, vents">
+                                <i class="fas fa-ban"></i>
+                                <span>Obstacles</span>
+                            </button>
+                            <button class="feature-btn" id="multiRoofBtn" onclick="toggleMultiRoofMode()" title="Add multiple roof sections">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Multi-Roof</span>
+                            </button>
+                            <button class="feature-btn" onclick="generatePDFReport()" title="Export detailed PDF report">
+                                <i class="fas fa-file-pdf"></i>
+                                <span>PDF</span>
+                            </button>
+                        </div>
+
+                        <!-- Obstacles Section -->
+                        <div id="obstaclesSection" style="margin-top: 16px; display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 13px; font-weight: 600; color: var(--text);">
+                                    <i class="fas fa-ban" style="color: var(--error);"></i> Marked Obstacles
+                                </span>
+                                <button class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px;" onclick="clearAllObstacles()">
+                                    Clear All
+                                </button>
+                            </div>
+                            <div id="obstacleList" class="obstacle-list">
+                                <div style="color: var(--text-muted); font-size: 12px; padding: 8px; text-align: center;">
+                                    Click on the map to mark obstacles (AC units, vents, skylights)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multiple Roofs Section -->
+                        <div id="multiRoofSection" style="margin-top: 16px; display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 13px; font-weight: 600; color: var(--text);">
+                                    <i class="fas fa-layer-group" style="color: var(--primary);"></i> Roof Sections
+                                </span>
+                                <span id="totalRoofArea" style="font-size: 12px; color: var(--text-secondary);">Total: 0 m²</span>
+                            </div>
+                            <div id="roofSectionsList" class="obstacle-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Calculate Button -->
+                    <button class="btn btn-primary btn-full" id="calculateBtn" onclick="calculateSolar()" style="margin-top: 24px;">
+                        <span class="btn-spinner" style="display:none;"></span>
+                        <span class="btn-text"><i class="fas fa-calculator"></i> Calculate Solar Potential</span>
+                    </button>
+
+                    <!-- Results Section -->
+                    <div id="resultsSection" style="margin-top: 24px; display: none;">
+                        <div class="results-tabs">
+                            <button class="results-tab active" onclick="switchResultsTab('summary')">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Quick Summary</span>
+                            </button>
+                            <button class="results-tab" onclick="switchResultsTab('weather')">
+                                <i class="fas fa-cloud-sun"></i>
+                                <span>Weather</span>
+                            </button>
+                            <button class="results-tab" onclick="switchMainTab('chatbot')" style="background: rgba(250, 204, 21, 0.1); border: 1px solid rgba(250, 204, 21, 0.25);">
+                                <i class="fas fa-robot"></i>
+                                <span>AI Chat</span>
+                            </button>
+                        </div>
+
+                        <!-- Quick Summary Tab -->
+                        <div id="results-tab-summary" class="results-tab-content active">
+                            <div class="quick-summary">
+                                <div class="quick-summary-grid">
+                                    <div class="quick-stat">
+                                        <div class="quick-stat-value" id="quickSystemSize">0 kW</div>
+                                        <div class="quick-stat-label">System Size</div>
+                                    </div>
+                                    <div class="quick-stat">
+                                        <div class="quick-stat-value" id="quickPanelCount">0</div>
+                                        <div class="quick-stat-label">Panels</div>
+                                    </div>
+                                    <div class="quick-stat">
+                                        <div class="quick-stat-value" id="quickAnnualOutput">0 kWh</div>
+                                        <div class="quick-stat-label">Annual Output</div>
+                                    </div>
+                                    <div class="quick-stat" id="quickPaybackStat" data-type="payback">
+                                        <div class="quick-stat-value" id="quickPayback">0 yrs</div>
+                                        <div class="quick-stat-label">Payback</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weather Tab -->
+                        <div id="results-tab-weather" class="results-tab-content">
+                            <div id="weatherCard" class="weather-card">
+                                <div class="weather-header">
+                                    <span class="weather-icon">🌤️</span>
+                                    <div>
+                                        <div class="weather-temp">--°C</div>
+                                        <div class="weather-condition">Loading weather...</div>
+                                    </div>
+                                </div>
+                                <div id="weatherDetails"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Recommendations -->
+                    <div id="panelRecommendation" style="margin-top: 24px;">
+                        <div class="rec-header">
+                            <span class="rec-badge">AI Recommended</span>
+                            <span style="font-size: 14px; font-weight: 600; color: var(--text);">Best Panel for You</span>
+                        </div>
+                        <div id="recommendedPanel"></div>
+                        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+                            <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">Alternative Option</div>
+                            <div id="alternativePanel"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Production Tab -->
+            <div id="main-tab-production" class="main-tab-content" role="tabpanel">
+                <div class="content-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div>
+                            <div class="section-title">Energy Production</div>
+                            <div class="section-subtitle">Annual and monthly output estimates</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title"><i class="fas fa-sun"></i> Annual Production</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-zap"></i> Total Energy</span>
+                            <span class="result-value highlight" id="annualEnergy">-- kWh</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-calendar"></i> Monthly Average</span>
+                            <span class="result-value" id="monthlyEnergy">-- kWh</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title"><i class="fas fa-chart-area"></i> Solar Resource</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-sun"></i> Peak Sun Hours</span>
+                            <span class="result-value" id="peakSunHours">-- hrs/day</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-radiation"></i> Annual Irradiance</span>
+                            <span class="result-value" id="annualIrradiance">-- kWh/m²</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-arrow-up"></i> Best Month</span>
+                            <span class="result-value success" id="bestMonth">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-arrow-down"></i> Worst Month</span>
+                            <span class="result-value" id="worstMonth">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-thermometer-half"></i> Avg Temperature</span>
+                            <span class="result-value" id="avgTemp">--°C</span>
+                        </div>
+                        <div id="weatherInfo" style="display: none;"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title"><i class="fas fa-solar-panel"></i> System Details</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-plug"></i> System Size</span>
+                            <span class="result-value" id="systemSize">-- kW</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-th"></i> Panel Count</span>
+                            <span class="result-value" id="panelCount">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-percentage"></i> Roof Coverage</span>
+                            <span class="result-value" id="panelCoverage">--%</span>
+                        </div>
+                    </div>
+
+                    <!-- Solar Investment Rating -->
+                    <div class="card investment-card" id="investmentRatingCard" data-rating="excellent">
+                        <div class="investment-card-header">
+                            <div class="investment-icon" id="investmentIcon">
+                                <i class="fas fa-solar-panel"></i>
+                            </div>
+                            <div>
+                                <div class="investment-title" id="investmentTitle">Calculating...</div>
+                                <div class="investment-subtitle" id="investmentSubtitle">Analyzing your solar potential</div>
+                            </div>
+                        </div>
+
+                        <div class="rating-score-bar">
+                            <div class="rating-score-track">
+                                <div class="rating-score-fill" id="ratingScoreFill" style="width: 0%"></div>
+                            </div>
+                            <div class="rating-score-label">
+                                <span class="rating-score-text">Investment Score</span>
+                                <span class="rating-score-value" id="ratingScoreValue">--</span>
+                            </div>
+                        </div>
+
+                        <div class="investment-metrics">
+                            <div class="investment-metric">
+                                <div class="investment-metric-icon">💰</div>
+                                <div class="investment-metric-value" id="metricMonthlySavings">--</div>
+                                <div class="investment-metric-label">Monthly Savings</div>
+                            </div>
+                            <div class="investment-metric">
+                                <div class="investment-metric-icon">🌍</div>
+                                <div class="investment-metric-value" id="metricCO2">--</div>
+                                <div class="investment-metric-label">CO₂ Reduction</div>
+                            </div>
+                            <div class="investment-metric">
+                                <div class="investment-metric-icon">⚡</div>
+                                <div class="investment-metric-value" id="metricCleanEnergy">--</div>
+                                <div class="investment-metric-label">Grid Offset</div>
+                            </div>
+                        </div>
+
+                        <div class="investment-tip" id="investmentTip">
+                            <i class="fas fa-lightbulb"></i>
+                            <span id="investmentTipText">Run a calculation to see your investment rating.</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <div style="font-weight: 600; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-bar" style="color: var(--primary); font-size: 16px;"></i>
+                            Monthly Production Forecast
+                        </div>
+                        <div style="height: 220px;">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div id="calculationBreakdown"></div>
+                </div>
+            </div>
+
+            <!-- Financial Tab -->
+            <div id="main-tab-financial" class="main-tab-content" role="tabpanel">
+                <div class="content-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div>
+                            <div class="section-title">Financial Analysis</div>
+                            <div class="section-subtitle">Costs, savings, and ROI projection</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title"><i class="fas fa-receipt"></i> Investment</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-tag"></i> System Cost</span>
+                            <span class="result-value" id="systemCost">-- AED</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-wallet"></i> Net Cost</span>
+                            <span class="result-value highlight" id="netCost">-- AED</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title"><i class="fas fa-piggy-bank"></i> Savings</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-calendar-check"></i> Annual Savings</span>
+                            <span class="result-value success" id="annualSavings">-- AED</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-percentage"></i> ROI (Annual)</span>
+                            <span class="result-value success" id="roiPercent">--%</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-hourglass-half"></i> Payback Period</span>
+                            <span class="result-value highlight" id="paybackPeriod">-- years</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-chart-line"></i> 25-Year Profit</span>
+                            <span class="result-value success" id="totalProfit">-- AED</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-coins"></i> Net Present Value</span>
+                            <span class="result-value" id="npvValue">-- AED</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-bolt"></i> LCOE</span>
+                            <span class="result-value" id="lcoeValue">-- AED/kWh</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-chart-area"></i> IRR</span>
+                            <span class="result-value success" id="irrValue">--%</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title"><i class="fas fa-leaf"></i> Environmental Impact</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-cloud"></i> CO₂ Reduction (25yr)</span>
+                            <span class="result-value success" id="co2Reduction">-- tons</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-tree"></i> Trees Equivalent</span>
+                            <span class="result-value" id="treesEquiv">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-car"></i> Cars Off Road (Annual)</span>
+                            <span class="result-value" id="carsEquiv">--</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label"><i class="fas fa-home"></i> Home Power (Years)</span>
+                            <span class="result-value" id="homeYears">--</span>
+                        </div>
+                    </div>
+
+                    <div class="chart-container" style="padding: 16px;">
+                        <div style="font-weight: 600; color: var(--text); margin-bottom: 8px; font-size: 14px;">
+                            <i class="fas fa-chart-bar" style="color: var(--success);"></i>
+                            Cumulative Savings Over 25 Years
+                        </div>
+                        <div style="height: 160px;">
+                            <canvas id="savingsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Export PDF Button -->
+                    <button class="btn btn-primary btn-full" onclick="generatePDFReport()" style="margin-top: 16px;">
+                        <i class="fas fa-file-pdf"></i>
+                        Export Professional Report (PDF)
+                    </button>
+                </div>
+            </div>
+
+            <!-- AI Chatbot Tab -->
+            <div id="main-tab-chatbot" class="main-tab-content" role="tabpanel">
+                <div class="content-section" style="padding-top: 16px;">
+                    <div class="chatbot-container">
+                        <div class="chatbot-messages" id="chatbotMessages">
+                            <div class="chatbot-message bot">
+                                <div class="chatbot-avatar" style="background: transparent; border: none; padding: 0;">
+                                    <img src="assets/images/logo.png" alt="AI" style="width: 28px; height: 28px; object-fit: contain;">
+                                </div>
+                                <div class="chatbot-text">
+                                    <strong>Welcome to SolarVision AI.</strong> I'm your expert solar consultant powered by advanced AI. I can assist you with:
+                                    <ul style="margin: 8px 0 0 16px; font-size: 12px;">
+                                        <li><strong>Results Analysis</strong> - Deep dive into your energy & financial projections</li>
+                                        <li><strong>ROI Optimization</strong> - Strategies to maximize your solar investment</li>
+                                        <li><strong>Solar Regulations</strong> - Net metering, utility connection guidelines & policies</li>
+                                        <li><strong>System Design</strong> - Panel selection, tilt angles, and layout optimization</li>
+                                        <li><strong>Financial Planning</strong> - Payback periods, NPV, financing options</li>
+                                    </ul>
+                                    <p style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">💡 Ask me anything about your solar analysis or solar energy.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chatbot-input-container">
+                            <input type="text" id="chatbotInput" class="chatbot-input" placeholder="Ask about your results, ROI optimization, or solar guidelines..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+                            <button class="chatbot-send-btn" onclick="sendChatMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="chatbot-suggestions">
+                            <button class="suggestion-chip" onclick="askSuggestion('Analyze my calculation results in detail')">
+                                <i class="fas fa-chart-line"></i> Deep Analysis
+                            </button>
+                            <button class="suggestion-chip" onclick="askSuggestion('How can I maximize my ROI and reduce payback period?')">
+                                <i class="fas fa-coins"></i> Maximize ROI
+                            </button>
+                            <button class="suggestion-chip" onclick="askSuggestion('Explain utility net metering and guidelines')">
+                                <i class="fas fa-gavel"></i> Net Metering
+                            </button>
+                            <button class="suggestion-chip" onclick="askSuggestion('What are the best solar panel brands for hot climates?')">
+                                <i class="fas fa-solar-panel"></i> Panel Guide
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Map Container -->
+        <main id="main-content" class="map-container" role="main">
+            <div id="map" role="application" aria-label="Interactive satellite map for rooftop solar analysis"></div>
+            
+            <!-- Coordinate Badge -->
+            <div class="map-coords" id="mapCoords">
+                <i class="fas fa-crosshairs"></i>
+                <span id="mapCoordsText">25.2048°N, 55.2708°E</span>
+            </div>
+            
+            <!-- Drawing Mode Indicator -->
+            <div id="drawingModeIndicator" class="drawing-mode-indicator">
+                <i class="fas fa-hand-pointer"></i>
+                <span id="drawingModeText">Click to place obstacle</span>
+                <button onclick="exitDrawingMode()" style="background: transparent; border: none; color: white; cursor: pointer; margin-left: 8px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Shading Info Box -->
+            <div id="shadingInfoBox" class="shading-info-box">
+                <div style="font-weight: 600; margin-bottom: 8px;"><i class="fas fa-cloud-sun"></i> Shading Analysis</div>
+                <div id="shadingInfoContent">Analyzing nearby buildings...</div>
+            </div>
+            
+            <div class="map-overlay" role="toolbar" aria-label="Map controls">
+                <button class="map-btn" onclick="locateMe()" title="My Location" aria-label="Find my location">
+                    <i class="fas fa-location-crosshairs" aria-hidden="true"></i>
+                </button>
+                <button class="map-btn" onclick="autoDetectBuilding()" title="AI Detect Building" aria-label="Detect building with AI">
+                    <i class="fas fa-magic" aria-hidden="true"></i>
+                </button>
+                <button class="map-btn" onclick="clearRoof()" title="Clear Drawing" aria-label="Clear roof drawing">
+                    <i class="fas fa-eraser" aria-hidden="true"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <!-- Core App JS -->
+    <script src="solar_advance_1.js"></script>
+
+    <!-- UI Interaction Scripts -->
+    <script>
+        // AOS (Animate On Scroll) configuration
+        window.addEventListener('load', () => {
+            if (typeof AOS !== 'undefined') {
+                AOS.init({ duration: 800, once: true, easing: 'ease-out-cubic' });
+            }
+        });
+
+        // Background Particles Animation
+        (function() {
+            const canvas = document.getElementById('particle-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w = canvas.width = window.innerWidth;
+            let h = canvas.height = window.innerHeight;
+            const particles = [];
+
+            function rand(min, max) { return Math.random() * (max - min) + min; }
+
+            function createParticles(count) {
+                for (let i = 0; i < count; i++) {
+                    particles.push({
+                        x: rand(0, w),
+                        y: rand(0, h),
+                        r: rand(0.6, 2.6),
+                        vx: rand(-0.2, 0.2),
+                        vy: rand(-0.1, -0.6),
+                        hue: rand(30, 55)
+                    });
+                }
+            }
+
+            window.addEventListener('resize', () => {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            });
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                for (let p of particles) {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.y < -10) p.y = h + 10;
+                    if (p.x < -10) p.x = w + 10;
+                    if (p.x > w + 10) p.x = -10;
+
+                    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 12);
+                    g.addColorStop(0, `hsla(${p.hue}, 85%, 60%, 0.12)`);
+                    g.addColorStop(1, `hsla(${p.hue}, 80%, 60%, 0)`);
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r * 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                requestAnimationFrame(draw);
+            }
+
+            createParticles(Math.max(24, Math.floor(window.innerWidth / 40)));
+            draw();
+        })();
+
+        // Sidebar scroll listener for scrolled headers
+        const header = document.querySelector('.header');
+        const sidebar = document.querySelector('.sidebar');
+        if (header && sidebar) {
+            sidebar.addEventListener('scroll', () => {
+                if (sidebar.scrollTop > 40) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
