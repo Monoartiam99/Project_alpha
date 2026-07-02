@@ -1,12 +1,12 @@
--BEGIN HEADER-
-NASA/POWER Source Native Resolution Monthly and Annual 
-Dates (month/day/year): 01/01/2020 through 12/31/2025 in LST
-Location: Regional 
-Elevation from MERRA-2: Average for 0.5 x 0.625 degree lat/lon region = na meters
-The value for missing source data that cannot be computed or is outside of the sources availability range: -999 
-Parameter(s): 
-ALLSKY_SFC_SW_DWN     CERES SYN1deg All Sky Surface Shortwave Downward Irradiance (kW-hr/m^2/day) 
--END HEADER-
+-BEGIN HEADER-,,,,,,,,,,,,,,,,
+NASA/POWER Source Native Resolution Monthly and Annual ,,,,,,,,,,,,,,,,
+Dates (month/day/year): 01/01/2020 through 12/31/2025 in LST,,,,,,,,,,,,,,,,
+Location: Regional - Maharashtra,,,,,,,,,,,,,,,,
+Elevation from MERRA-2: Average for 0.5 x 0.625 degree lat/lon region = na meters,,,,,,,,,,,,,,,,
+The value for missing source data that cannot be computed or is outside of the sources availability range: -999 ,,,,,,,,,,,,,,,,
+Parameter(s): ,,,,,,,,,,,,,,,,
+ALLSKY_SFC_SW_DWN     CERES SYN1deg All Sky Surface Shortwave Downward Irradiance (kW-hr/m^2/day) ,,,,,,,,,,,,,,,,
+-END HEADER-,,,,,,,,,,,,,,,,
 PARAMETER,YEAR,LAT,LON,JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC,ANN
 ALLSKY_SFC_SW_DWN,2020,16.5,73.5,5.2282,5.9009,6.7658,6.9324,6.5926,4.2871,3.5599,3.6943,4.4801,4.1921,5.1434,4.7438,5.1216
 ALLSKY_SFC_SW_DWN,2020,16.5,74.5,4.9534,5.7574,6.4786,6.7078,6.581,4.7542,4.1369,3.5062,4.4527,4.247,4.7726,4.8139,5.0923

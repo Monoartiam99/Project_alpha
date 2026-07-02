@@ -1,12 +1,12 @@
--BEGIN HEADER-
-NASA/POWER Source Native Resolution Monthly and Annual 
-Dates (month/day/year): 01/01/2020 through 12/31/2025 in LST
-Location: Regional 
-Elevation from MERRA-2: Average for 0.5 x 0.625 degree lat/lon region = na meters
-The value for missing source data that cannot be computed or is outside of the sources availability range: -999 
-Parameter(s): 
-ALLSKY_SFC_SW_DWN     CERES SYN1deg All Sky Surface Shortwave Downward Irradiance (kW-hr/m^2/day) 
--END HEADER-
+-BEGIN HEADER-,,,,,,,,,,,,,,,,
+NASA/POWER Source Native Resolution Monthly and Annual ,,,,,,,,,,,,,,,,
+Dates (month/day/year): 01/01/2020 through 12/31/2025 in LST,,,,,,,,,,,,,,,,
+Location: Regional - UTTARPADESH,,,,,,,,,,,,,,,,
+Elevation from MERRA-2: Average for 0.5 x 0.625 degree lat/lon region = na meters,,,,,,,,,,,,,,,,
+The value for missing source data that cannot be computed or is outside of the sources availability range: -999 ,,,,,,,,,,,,,,,,
+Parameter(s): ,,,,,,,,,,,,,,,,
+ALLSKY_SFC_SW_DWN     CERES SYN1deg All Sky Surface Shortwave Downward Irradiance (kW-hr/m^2/day) ,,,,,,,,,,,,,,,,
+-END HEADER-,,,,,,,,,,,,,,,,
 PARAMETER,YEAR,LAT,LON,JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC,ANN
 ALLSKY_SFC_SW_DWN,2020,24.5,77.5,3.7663,5.1487,5.8133,6.8263,7.2329,5.4746,5.3026,3.6962,4.9975,5.0093,4.2209,3.7342,5.0986
 ALLSKY_SFC_SW_DWN,2020,24.5,78.5,3.726,5.0566,5.7331,6.6922,7.1201,5.2118,5.1898,3.763,4.8804,5.0189,4.2062,3.6233,5.0158
@@ -129,7 +129,7 @@ ALLSKY_SFC_SW_DWN,2022,26.5,82.5,2.3078,4.3171,5.7626,6.5875,6.0967,5.6122,5.125
 ALLSKY_SFC_SW_DWN,2022,26.5,83.5,2.197,4.2322,5.7432,6.336,5.9628,5.2824,5.1684,4.8041,4.0174,4.319,3.6708,2.9102,4.5533
 ALLSKY_SFC_SW_DWN,2022,26.5,84.5,2.2603,4.1938,5.6472,6.1975,5.9081,5.1569,5.1626,5.0011,3.7994,4.3678,3.6605,2.8644,4.519
 ALLSKY_SFC_SW_DWN,2022,27.5,77.5,2.5903,4.5298,5.8526,6.6806,6.2573,5.8301,5.0357,4.5451,4.5202,4.3805,3.8587,3.5354,4.799
-ALLSKY_SFC_SW_DWN,2022,27.5,78.5,2.3352,4.2379,5.7886,6.7056,6.2933,6.0,5.1142,4.7086,4.3061,4.1002,3.6101,3.2503,4.703
+ALLSKY_SFC_SW_DWN,2022,27.5,78.5,2.3352,4.2379,5.7886,6.7056,6.2933,6,5.1142,4.7086,4.3061,4.1002,3.6101,3.2503,4.703
 ALLSKY_SFC_SW_DWN,2022,27.5,79.5,2.3635,4.1424,5.8082,6.7625,6.3386,5.9743,5.0962,4.831,4.2245,4.0366,3.613,3.1212,4.6922
 ALLSKY_SFC_SW_DWN,2022,27.5,80.5,2.399,4.1947,5.8154,6.8021,6.1654,6.0166,5.2181,4.9932,4.3735,4.0946,3.751,3.2462,4.7551
 ALLSKY_SFC_SW_DWN,2022,27.5,81.5,2.3146,4.141,5.8524,6.7334,6.0938,5.9669,5.0549,5.149,4.4023,3.9588,3.7339,3.2222,4.7179

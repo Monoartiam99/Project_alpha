@@ -6975,7 +6975,7 @@ const daylightHoursPerMonth = [
             ];
             
             const allFiles = [baseName + '.csv'];
-            for (let i = 2; i <= 27; i++) allFiles.push(`${baseName}-${i}.csv`);
+            for (let i = 2; i <= 26; i++) allFiles.push(`${baseName}-${i}.csv`);
 
             let loadedAny = false;
             
@@ -7161,11 +7161,14 @@ const daylightHoursPerMonth = [
                 const allSkyData = findNearestNasaData(nasaPowerAllSkyData, lat, lon);
                 const clearSkyData = findNearestNasaData(nasaPowerClearSkyData, lat, lon);
 
-                if (!allSkyData || !clearSkyData) return null;
+                const fallbackAllSkyIrradiation = getMonthlyIrradiation(null);
+                const fallbackClearSkyIrradiation = Math.max(fallbackAllSkyIrradiation * 1.12, fallbackAllSkyIrradiation + 0.5);
 
                 const allSkyIrradiation = getMonthlyIrradiation(allSkyData);
                 const clearSkyIrradiation = getMonthlyIrradiation(clearSkyData);
-                const cloudDeratingFactor = Math.min(0.92, allSkyIrradiation / clearSkyIrradiation); // Cap at 92% to ensure minimum cloud cover
+                const resolvedAllSkyIrradiation = allSkyIrradiation || fallbackAllSkyIrradiation;
+                const resolvedClearSkyIrradiation = clearSkyIrradiation || fallbackClearSkyIrradiation;
+                const cloudDeratingFactor = Math.min(0.92, resolvedAllSkyIrradiation / resolvedClearSkyIrradiation); // Cap at 92% to ensure minimum cloud cover
                 
                 // India typically has 15-35% cloud cover on average (higher during monsoon, not 0%)
                 // Adjust calculation to reflect realistic conditions
@@ -7215,8 +7218,10 @@ const daylightHoursPerMonth = [
                 const weatherResult = {
                     avgCloudCover, sunnyDays, partlyCloudyDays, cloudyDays, totalDays: 30,
                     cloudDeratingFactor, currentTemp, avgAnnualTemp, condition,
-                    allSkyIrradiation, clearSkyIrradiation,
-                    dataSource: '🤖 NASA POWER', aiEnhanced: true
+                    allSkyIrradiation: resolvedAllSkyIrradiation,
+                    clearSkyIrradiation: resolvedClearSkyIrradiation,
+                    dataSource: allSkyData && clearSkyData ? '🤖 NASA POWER' : '🤖 NASA POWER + India fallback',
+                    aiEnhanced: true
                 };
                 
                 // Cache the result for future use
