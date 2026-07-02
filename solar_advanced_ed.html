@@ -4996,7 +4996,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.0.0/jspdf.umd.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <script>
@@ -8745,8 +8745,55 @@ ${systemContext}`
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
                 const margin = 15;
                 let yPos = 20;
+
+                const loadImageAsDataUrl = async (src) => {
+                    try {
+                        const response = await fetch(src);
+                        if (!response.ok) return null;
+
+                        const blob = await response.blob();
+                        return await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.onerror = () => resolve(null);
+                            reader.readAsDataURL(blob);
+                        });
+                    } catch (error) {
+                        return null;
+                    }
+                };
+
+                const logoDataUrl = await loadImageAsDataUrl('assets/images/logo.png');
+                const signatureDataUrl = await loadImageAsDataUrl('assets/images/mn_sign.png');
+                const footerTop = pageHeight - 17;
+                const signatureTop = pageHeight - 28;
+                const contentLimit = signatureTop - 6;
+
+                const ensureSpace = (neededHeight) => {
+                    if (yPos + neededHeight > contentLimit) {
+                        doc.addPage();
+                        yPos = 20;
+                    }
+                };
+
+                const sectionTitle = (title) => {
+                    doc.setTextColor(...darkColor);
+                    doc.setFontSize(13);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(title, margin, yPos);
+                    doc.setDrawColor(...primaryColor);
+                    doc.setLineWidth(0.5);
+                    doc.line(margin, yPos + 2.5, pageWidth - margin, yPos + 2.5);
+                    yPos += 8;
+                };
+
+                const drawKeyValueCard = (x, y, w, h, fill) => {
+                    doc.setFillColor(...fill);
+                    doc.roundedRect(x, y, w, h, 3, 3, 'F');
+                };
 
                 // Colors
                 const primaryColor = [234, 179, 8]; // Yellow
@@ -8756,28 +8803,30 @@ ${systemContext}`
 
                 // Header
                 doc.setFillColor(...primaryColor);
-                doc.rect(0, 0, pageWidth, 35, 'F');
+                doc.rect(0, 0, pageWidth, 38, 'F');
                 
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(24);
                 doc.setFont('helvetica', 'bold');
-                doc.text('SolarPole', margin, 18);
+                if (logoDataUrl) {
+                    doc.addImage(logoDataUrl, 'PNG', margin, 8, 20, 20);
+                    doc.text('SolarPole', margin + 24, 16);
+                } else {
+                    doc.text('SolarPole', margin, 16);
+                }
                 
                 doc.setFontSize(11);
                 doc.setFont('helvetica', 'normal');
-                doc.text('Professional Solar Analysis Report', margin, 28);
+                doc.text('Professional Solar Analysis Report', margin + (logoDataUrl ? 24 : 0), 27);
                 
                 doc.setFontSize(10);
-                doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - margin - 45, 28);
+                doc.text(`Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth - margin - 50, 27);
 
-                yPos = 45;
-
+                yPos = 46;
+                
                 // Location Section
-                doc.setTextColor(...darkColor);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('📍 Location Details', margin, yPos);
-                yPos += 8;
+                ensureSpace(20);
+                sectionTitle('Location Details');
 
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
@@ -8790,15 +8839,11 @@ ${systemContext}`
                 // System Configuration
                 const sizing = computeSystemFromPanelCount(currentPanelCount);
                 
-                doc.setTextColor(...darkColor);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('⚡ System Configuration', margin, yPos);
-                yPos += 8;
+                ensureSpace(45);
+                sectionTitle('System Configuration');
 
                 // System info box
-                doc.setFillColor(254, 243, 199); // Light yellow
-                doc.roundedRect(margin, yPos, pageWidth - 2*margin, 35, 3, 3, 'F');
+                drawKeyValueCard(margin, yPos, pageWidth - 2*margin, 35, [254, 243, 199]);
                 
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
@@ -8836,11 +8881,8 @@ ${systemContext}`
                 yPos += 45;
 
                 // Energy Production
-                doc.setTextColor(...darkColor);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('🔋 Energy Production', margin, yPos);
-                yPos += 10;
+                ensureSpace(40);
+                sectionTitle('Energy Production');
 
                 // Calculate production
                 const annualProduction = sizing.systemSizeKW * 1500; // India average
@@ -8869,13 +8911,10 @@ ${systemContext}`
                 yPos += 35;
 
                 // Financial Analysis
-                doc.setTextColor(...darkColor);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('💰 Financial Analysis', margin, yPos);
-                yPos += 10;
+                ensureSpace(55);
+                sectionTitle('Financial Analysis');
 
-                const electricityRate = 0.38;
+                const electricityRate = 7.5;
                 const annualSavings = annualProduction * electricityRate;
                 const paybackYears = sizing.systemCostINR / annualSavings;
                 const profit25yr = (annualSavings * 25) - sizing.systemCostINR;
@@ -8891,29 +8930,23 @@ ${systemContext}`
                 ];
 
                 doc.setFontSize(10);
-                tableData.forEach((row, i) => {
-                    doc.setFillColor(i % 2 === 0 ? 249 : 241, i % 2 === 0 ? 250 : 245, i % 2 === 0 ? 251 : 249);
-                    doc.rect(margin, yPos, pageWidth - 2*margin, 8, 'F');
-                    
+                tableData.forEach((row) => {
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(...grayColor);
-                    doc.text(row[0], margin + 5, yPos + 5.5);
-                    
+                    doc.text(`${row[0]}:`, margin + 5, yPos + 5.5);
+
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...darkColor);
-                    doc.text(row[1], pageWidth - margin - 5, yPos + 5.5, { align: 'right' });
-                    
-                    yPos += 8;
+                    doc.text(row[1], margin + 58, yPos + 5.5);
+
+                    yPos += 7.5;
                 });
 
-                yPos += 10;
+                yPos += 4;
 
                 // Environmental Impact
-                doc.setTextColor(...darkColor);
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('🌍 Environmental Impact (25 Years)', margin, yPos);
-                yPos += 10;
+                ensureSpace(30);
+                sectionTitle('Environmental Impact (25 Years)');
 
                 const co2Reduction = (annualProduction * 25 * 0.5) / 1000; // tons
                 const treesEquiv = Math.round(co2Reduction * 45);
@@ -8925,17 +8958,14 @@ ${systemContext}`
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(...darkColor);
-                doc.text(`CO₂ Reduction: ${co2Reduction.toFixed(1)} tons  |  Trees Equivalent: ${treesEquiv}  |  Cars Off Road: ${carsOff}/year`, margin + 5, yPos + 12);
+                doc.text(`CO2 Reduction: ${co2Reduction.toFixed(1)} tons  |  Trees Equivalent: ${treesEquiv}  |  Cars Off Road: ${carsOff}/year`, margin + 5, yPos + 12);
 
                 yPos += 30;
 
                 // Weather Data (if available)
                 if (weatherData) {
-                    doc.setTextColor(...darkColor);
-                    doc.setFontSize(14);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('🌤️ Weather Conditions', margin, yPos);
-                    yPos += 8;
+                    ensureSpace(22);
+                    sectionTitle('Weather Conditions');
 
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
@@ -8960,16 +8990,8 @@ ${systemContext}`
                 // AI Analysis (if available)
                 const aiText = document.getElementById('aiAnalysisText');
                 if (aiText && aiText.textContent.length > 100) {
-                    if (yPos > 230) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                    
-                    doc.setTextColor(...darkColor);
-                    doc.setFontSize(14);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('🤖 AI Analysis & Recommendations', margin, yPos);
-                    yPos += 8;
+                    ensureSpace(70);
+                    sectionTitle('AI Analysis & Recommendations');
 
                     doc.setFillColor(243, 244, 246);
                     const aiContent = aiText.textContent.replace(/\s+/g, ' ').trim();
@@ -8989,11 +9011,8 @@ ${systemContext}`
 
                 // Shading Analysis (if available)
                 if (shadingAnalysisResult) {
-                    doc.setTextColor(...darkColor);
-                    doc.setFontSize(14);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('☁️ Shading Analysis', margin, yPos);
-                    yPos += 8;
+                    ensureSpace(24);
+                    sectionTitle('Shading Analysis');
 
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
@@ -9004,11 +9023,8 @@ ${systemContext}`
 
                 // Obstacles (if any)
                 if (obstacles.length > 0) {
-                    doc.setTextColor(...darkColor);
-                    doc.setFontSize(14);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('🚫 Marked Obstacles', margin, yPos);
-                    yPos += 8;
+                    ensureSpace(24);
+                    sectionTitle('Marked Obstacles');
 
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'normal');
@@ -9017,13 +9033,41 @@ ${systemContext}`
                     yPos += 12;
                 }
 
-                // Footer
-                doc.setFillColor(...primaryColor);
-                doc.rect(0, 280, pageWidth, 17, 'F');
-                
-                doc.setTextColor(255, 255, 255);
+                // Signature block on the final page.
+                doc.setFillColor(248, 250, 252);
+                doc.roundedRect(margin, signatureTop, pageWidth - 2*margin, 24, 3, 3, 'F');
+
+                doc.setTextColor(...darkColor);
                 doc.setFontSize(9);
-                doc.text('Generated by SolarPole | Professional Solar Analysis Platform', pageWidth/2, 289, { align: 'center' });
+                doc.setFont('helvetica', 'bold');
+                doc.text('Authority Signature', margin + 5, signatureTop + 8);
+
+                if (signatureDataUrl) {
+                    doc.addImage(signatureDataUrl, 'PNG', pageWidth - margin - 44, signatureTop + 5, 36, 12);
+                } else {
+                    doc.setDrawColor(...grayColor);
+                    doc.setLineWidth(0.4);
+                    doc.line(pageWidth - 75, signatureTop + 14, pageWidth - margin - 5, signatureTop + 14);
+                }
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(...grayColor);
+                doc.text('Name / Signature', pageWidth - 75, signatureTop + 18);
+
+                // Footer on every page.
+                const totalPages = doc.internal.getNumberOfPages();
+                for (let page = 1; page <= totalPages; page += 1) {
+                    doc.setPage(page);
+                    doc.setFillColor(...primaryColor);
+                    doc.rect(0, footerTop, pageWidth, 17, 'F');
+
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Generated by SolarPole | Professional Solar Analysis Platform', pageWidth / 2, footerTop + 10.5, { align: 'center' });
+                    doc.text(`Page ${page} of ${totalPages}`, pageWidth - margin, footerTop + 10.5, { align: 'right' });
+                }
 
                 // Save PDF
                 const filename = `SolarPole_Report_${new Date().toISOString().slice(0,10)}.pdf`;
