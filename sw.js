@@ -1,11 +1,12 @@
 // SolarVision Service Worker — Offline Support & Caching
-const CACHE_NAME = 'solarvision-v1';
+const CACHE_NAME = 'solarpole-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/solar_advanced.html',
   '/assets/images/logo.png'
 ];
+
 
 // Install — cache core static assets
 self.addEventListener('install', (event) => {
